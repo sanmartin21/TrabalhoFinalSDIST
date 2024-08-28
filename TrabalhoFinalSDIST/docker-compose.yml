@@ -1,0 +1,87 @@
+services:
+  aplicacao-one:
+    build: ./aplicacao
+    ports:
+      - "3001:3000"
+    environment:
+      - DATABASE_URL=mongodb://TrabalhoFinalSDIST-mongo-one-1:27017
+      - SERVER_NAME=aplicacao-one
+    depends_on:
+      - mongo-one
+
+  aplicacao-two:
+    build: ./aplicacao
+    ports:
+      - "3002:3000"
+    environment:
+      - DATABASE_URL=mongodb://TrabalhoFinalSDIST-mongo-two-1:27018
+      - SERVER_NAME=aplicacao-two
+    depends_on:
+      - mongo-two
+
+  aplicacao-three:
+    build: ./aplicacao
+    ports:
+      - "3003:3000"
+    environment:
+      - DATABASE_URL=mongodb://TrabalhoFinalSDIST-mongo-three-1:27019
+      - SERVER_NAME=aplicacao-three
+    depends_on:
+      - mongo-three
+
+  loadbalancernginx:
+    build: ./loadbalancernginx
+    ports:
+      - "80:80"
+    links:
+      - aplicacao-one
+      - aplicacao-two
+      - aplicacao-three
+
+  mongo-one:
+    image: mongo
+    command: [ "--replSet", "rs0", "--bind_ip_all", "--port", "27017", "--quiet" ]
+    ports:
+      - 27017:27017
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'host.docker.internal:27017',priority:1},{_id:1,host:'host.docker.internal:27018',priority:0.5},{_id:2,host:'host.docker.internal:27019',priority:0.5}]}) }" | mongosh --port 27017 --quiet
+      interval: 5s
+      timeout: 30s
+      start_period: 0s
+      start_interval: 1s
+      retries: 30
+    volumes:
+      - "mongo-one_data:/data/db"
+      - "mongo-one_config:/data/configdb"
+
+  mongo-two:
+    image: mongo
+    command: [ "--replSet", "rs0", "--bind_ip_all", "--port", "27018", "--quiet" ]
+    ports:
+      - 27018:27018
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "mongo-two_data:/data/db"
+      - "mongo-two_config:/data/configdb"
+
+  mongo-three:
+    image: mongo
+    command: [ "--replSet", "rs0", "--bind_ip_all", "--port", "27019", "--quiet" ]
+    ports:
+      - 27019:27019
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "mongo-three_data:/data/db"
+      - "mongo-three_config:/data/configdb"
+
+volumes:
+  mongo-one_data:
+  mongo-two_data:
+  mongo-three_data:
+  mongo-one_config:
+  mongo-two_config:
+  mongo-three_config:

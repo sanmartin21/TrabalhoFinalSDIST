@@ -1,0 +1,16 @@
+{
+    "servers": [
+        {
+            "host": "TrabalhoFinalSDIST-aplicacao-one-1",
+            "port": 3000
+        },
+        {
+            "host": "TrabalhoFinalSDIST-aplicacao-two-1",
+            "port": 3000
+        },
+        {
+            "host": "TrabalhoFinalSDIST-aplicacao-three-1",
+            "port": 3000
+        }
+    ]
+}
